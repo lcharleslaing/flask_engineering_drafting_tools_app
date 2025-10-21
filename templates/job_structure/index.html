@@ -197,6 +197,102 @@
     </div>
 </div>
 
+<!-- Naming Conditions Management -->
+<div class="card bg-base-100 shadow-xl mb-4">
+    <div class="card-body">
+        <h2 class="card-title">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z"/>
+            </svg>
+            Naming Conditions
+        </h2>
+        <p class="text-sm text-base-content/70 mb-4">Define rules to automatically rename items based on patterns.</p>
+        
+        <!-- Add New Condition Form -->
+        <div class="space-y-2 mb-4">
+            <div class="flex gap-2">
+                <select id="condition-type" class="select select-sm w-32">
+                    <option value="contains">Contains</option>
+                    <option value="startswith">Starts With</option>
+                    <option value="endswith">Ends With</option>
+                    <option value="equals">Equals</option>
+                    <option value="regex">Regex</option>
+                    <option value="intuitive">Intuitive Pattern</option>
+                    <option value="extract_job_number">Extract Job Number</option>
+                    <option value="extract_customer">Extract Customer</option>
+                    <option value="extract_date">Extract Date</option>
+                    <option value="not_contains">Not Contains</option>
+                    <option value="not_startswith">Not Starts With</option>
+                    <option value="not_endswith">Not Ends With</option>
+                    <option value="not_equals">Not Equals</option>
+                </select>
+                <input type="text" 
+                       id="condition-pattern" 
+                       class="input input-sm flex-1" 
+                       placeholder="Pattern (e.g., '1. Sales' or '{d5}' for 5-digit job numbers)">
+                <span class="flex items-center text-lg">→</span>
+                <input type="text" 
+                       id="condition-replacement" 
+                       class="input input-sm flex-1" 
+                       placeholder="Replacement (e.g., 'Sales' or 'Job {5}')">
+                <button class="btn btn-sm btn-primary" onclick="addNamingCondition()">Add Condition</button>
+            </div>
+            
+            <!-- Advanced Chaining Form -->
+            <div class="border-t pt-2">
+                <div class="text-sm font-medium mb-2">Advanced: Chain Multiple Conditions</div>
+                <div class="space-y-2">
+                    <div class="flex gap-2 items-center">
+                        <select id="chain-operator" class="select select-sm w-20">
+                            <option value="AND">AND</option>
+                            <option value="OR">OR</option>
+                        </select>
+                        <select id="chain-condition-type" class="select select-sm w-32">
+                            <option value="contains">Contains</option>
+                            <option value="startswith">Starts With</option>
+                            <option value="endswith">Ends With</option>
+                            <option value="equals">Equals</option>
+                            <option value="regex">Regex</option>
+                            <option value="not_contains">Not Contains</option>
+                            <option value="not_startswith">Not Starts With</option>
+                            <option value="not_endswith">Not Ends With</option>
+                            <option value="not_equals">Not Equals</option>
+                        </select>
+                        <input type="text" 
+                               id="chain-pattern" 
+                               class="input input-sm flex-1" 
+                               placeholder="Second pattern">
+                        <button class="btn btn-sm btn-secondary" onclick="addChainedCondition()">Add Chain</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-xs text-base-content/60">
+                <strong>Examples:</strong>
+                <span class="ml-2">Contains: "1. Sales" → "Sales"</span>
+                <span class="ml-2">Job Number: "{d5}" → "Job {5}"</span>
+                <span class="ml-2">Customer: "{customer}" → "Customer {customer}"</span>
+                <span class="ml-2">Date: "{date}" → "Date {date}"</span>
+            </div>
+        </div>
+        
+        <!-- Conditions List -->
+        <div id="conditions-list" class="space-y-2 mb-4">
+            <!-- Conditions will be loaded here -->
+        </div>
+        
+        <!-- Apply/Undo Conditions Buttons -->
+        <div class="flex justify-end gap-2">
+            <button class="btn btn-sm btn-error" onclick="undoAllConditions()">
+                Undo All Conditions
+            </button>
+            <button class="btn btn-sm btn-secondary" onclick="applyConditionsToAllStructures()">
+                Apply Conditions to All Structures
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Existing Structures -->
 <div id="structures-container">
     <!-- Structures will be loaded here -->
@@ -209,11 +305,499 @@
 {% block extra_scripts %}
 <script>
 let currentStructures = [];
+let namingConditions = [];
 
 // Load existing structures on page load
 document.addEventListener('DOMContentLoaded', function() {
     loadStructures();
+    loadNamingConditions();
 });
+
+// Update alias for an item
+function updateAlias(itemIndex, newAlias) {
+    // Find the current structure and update the alias
+    const currentStructure = currentStructures.find(s => s.id === currentStructureId);
+    if (currentStructure && currentStructure.structure_data[itemIndex]) {
+        currentStructure.structure_data[itemIndex].alias = newAlias;
+        // Save the updated structure
+        saveStructure(currentStructure);
+    }
+}
+
+// Load naming conditions from database
+async function loadNamingConditions() {
+    try {
+        const response = await fetch('/job-structure/api/naming-conditions');
+        const data = await response.json();
+        if (data.success) {
+            namingConditions = data.conditions;
+            displayNamingConditions();
+        } else {
+            console.error('Error loading conditions:', data.error);
+        }
+    } catch (error) {
+        console.error('Error loading conditions:', error);
+    }
+}
+
+// Save naming condition to database
+async function saveNamingCondition(condition) {
+    try {
+        const response = await fetch('/job-structure/api/naming-conditions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(condition)
+        });
+        const data = await response.json();
+        return data.success;
+    } catch (error) {
+        console.error('Error saving condition:', error);
+        return false;
+    }
+}
+
+// Update naming condition in database
+async function updateNamingConditionInDB(conditionId, updates) {
+    try {
+        const response = await fetch(`/job-structure/api/naming-conditions/${conditionId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(updates)
+        });
+        const data = await response.json();
+        return data.success;
+    } catch (error) {
+        console.error('Error updating condition:', error);
+        return false;
+    }
+}
+
+// Delete naming condition from database
+async function deleteNamingConditionFromDB(conditionId) {
+    try {
+        const response = await fetch(`/job-structure/api/naming-conditions/${conditionId}`, {
+            method: 'DELETE'
+        });
+        const data = await response.json();
+        return data.success;
+    } catch (error) {
+        console.error('Error deleting condition:', error);
+        return false;
+    }
+}
+
+// Add a new naming condition
+async function addNamingCondition() {
+    const conditionType = document.getElementById('condition-type').value;
+    const pattern = document.getElementById('condition-pattern').value.trim();
+    const replacement = document.getElementById('condition-replacement').value.trim();
+    
+    if (!pattern || !replacement) {
+        showNotification('Please enter both pattern and replacement', 'error');
+        return;
+    }
+    
+    const condition = {
+        type: conditionType,
+        pattern: pattern,
+        replacement: replacement,
+        enabled: true,
+        chains: []
+    };
+    
+    const success = await saveNamingCondition(condition);
+    if (success) {
+        // Reload conditions from database
+        await loadNamingConditions();
+        
+        // Clear form
+        document.getElementById('condition-pattern').value = '';
+        document.getElementById('condition-replacement').value = '';
+        
+        showNotification('Naming condition added successfully', 'success');
+    } else {
+        showNotification('Failed to add naming condition', 'error');
+    }
+}
+
+// Add a chained condition to the last added condition
+function addChainedCondition() {
+    const operator = document.getElementById('chain-operator').value;
+    const chainType = document.getElementById('chain-condition-type').value;
+    const chainPattern = document.getElementById('chain-pattern').value.trim();
+    
+    if (!chainPattern) {
+        showNotification('Please enter a pattern for the chain', 'error');
+        return;
+    }
+    
+    if (namingConditions.length === 0) {
+        showNotification('Please add a main condition first', 'error');
+        return;
+    }
+    
+    // Add chain to the last condition
+    const lastCondition = namingConditions[namingConditions.length - 1];
+    lastCondition.chains = lastCondition.chains || [];
+    
+    lastCondition.chains.push({
+        operator: operator,
+        type: chainType,
+        pattern: chainPattern
+    });
+    
+    saveNamingConditions();
+    displayNamingConditions();
+    
+    // Clear chain form
+    document.getElementById('chain-pattern').value = '';
+    
+    showNotification('Chained condition added successfully', 'success');
+}
+
+// Display naming conditions
+function displayNamingConditions() {
+    const container = document.getElementById('conditions-list');
+    if (!container) return;
+    
+    if (namingConditions.length === 0) {
+        container.innerHTML = '<div class="text-sm text-base-content/70">No naming conditions defined</div>';
+        return;
+    }
+    
+    container.innerHTML = namingConditions.map(condition => `
+        <div class="p-2 bg-base-200 rounded">
+            <div class="flex items-center gap-2">
+                <input type="checkbox" ${condition.enabled ? 'checked' : ''} 
+                       onchange="toggleCondition(${condition.id})">
+                <span class="badge badge-sm badge-outline">${condition.type || 'contains'}</span>
+                <span class="flex-1 text-sm">
+                    <code>${condition.pattern}</code> → <code>${condition.replacement}</code>
+                </span>
+                <button class="btn btn-xs btn-error" onclick="removeCondition(${condition.id})">Remove</button>
+            </div>
+            ${condition.chains && condition.chains.length > 0 ? `
+                <div class="ml-6 mt-1 text-xs text-base-content/70">
+                    ${condition.chains.map(chain => `
+                        <span class="badge badge-xs badge-neutral mr-1">${chain.operator}</span>
+                        <span class="badge badge-xs badge-outline mr-1">${chain.type}</span>
+                        <code>${chain.pattern}</code>
+                    `).join(' ')}
+                </div>
+            ` : ''}
+        </div>
+    `).join('');
+}
+
+// Toggle condition enabled state
+async function toggleCondition(conditionId) {
+    const condition = namingConditions.find(c => c.id === conditionId);
+    if (condition) {
+        const newEnabled = !condition.enabled;
+        const success = await updateNamingConditionInDB(conditionId, { enabled: newEnabled });
+        
+        if (success) {
+            condition.enabled = newEnabled;
+            displayNamingConditions();
+            
+            // If disabling, apply conditions to remove the effect
+            if (!newEnabled) {
+                await applyConditionsToAllStructures();
+            }
+        } else {
+            showNotification('Failed to update condition', 'error');
+        }
+    }
+}
+
+// Remove a naming condition
+async function removeCondition(conditionId) {
+    const success = await deleteNamingConditionFromDB(conditionId);
+    
+    if (success) {
+        // Remove from local array
+        namingConditions = namingConditions.filter(c => c.id !== conditionId);
+        displayNamingConditions();
+        
+        // Apply conditions to all structures to remove the effect of deleted condition
+        await applyConditionsToAllStructures();
+        
+        showNotification('Naming condition removed and effects undone', 'info');
+    } else {
+        showNotification('Failed to remove condition', 'error');
+    }
+}
+
+// Apply naming conditions to a structure
+function applyNamingConditions(structure) {
+    if (!structure.structure_data) return structure;
+    
+    const enabledConditions = namingConditions.filter(c => c.enabled);
+    
+    structure.structure_data.forEach(item => {
+        // Apply each enabled condition
+        enabledConditions.forEach(condition => {
+            if (matchesCondition(item.name, condition)) {
+                item.alias = applyReplacement(item.name, condition);
+            }
+        });
+    });
+    
+    return structure;
+}
+
+// Check if a name matches a condition (including chains)
+function matchesCondition(name, condition) {
+    // Check main condition
+    const mainMatch = checkSingleCondition(name, condition.type, condition.pattern);
+    
+    // If no chains, return main match
+    if (!condition.chains || condition.chains.length === 0) {
+        return mainMatch;
+    }
+    
+    // Evaluate chains
+    let result = mainMatch;
+    
+    for (const chain of condition.chains) {
+        const chainMatch = checkSingleCondition(name, chain.type, chain.pattern);
+        
+        if (chain.operator === 'AND') {
+            result = result && chainMatch;
+        } else if (chain.operator === 'OR') {
+            result = result || chainMatch;
+        }
+    }
+    
+    return result;
+}
+
+// Check a single condition (main or chain)
+function checkSingleCondition(name, type, pattern) {
+    switch (type) {
+        case 'contains':
+            return name.includes(pattern);
+        case 'startswith':
+            return name.startsWith(pattern);
+        case 'endswith':
+            return name.endsWith(pattern);
+        case 'equals':
+            return name === pattern;
+        case 'regex':
+            try {
+                const regex = new RegExp(pattern);
+                return regex.test(name);
+            } catch (e) {
+                console.error('Invalid regex pattern:', pattern);
+                return false;
+            }
+        case 'extract_job_number':
+            // Look for 5-digit numbers
+            return /\d{5}/.test(name);
+        case 'extract_customer':
+            // Look for common customer name patterns
+            return /[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*/.test(name);
+        case 'extract_date':
+            // Look for date patterns (MM/DD/YYYY, YYYY-MM-DD, etc.)
+            return /\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2}/.test(name);
+        case 'intuitive':
+            // Convert intuitive patterns to regex and test
+            const intuitiveRegex = convertIntuitivePattern(pattern);
+            return intuitiveRegex.test(name);
+        case 'not_contains':
+            return !name.includes(pattern);
+        case 'not_startswith':
+            return !name.startsWith(pattern);
+        case 'not_endswith':
+            return !name.endsWith(pattern);
+        case 'not_equals':
+            return name !== pattern;
+        default:
+            return name.includes(pattern);
+    }
+}
+
+// Apply replacement based on condition type
+function applyReplacement(name, condition) {
+    const pattern = condition.pattern;
+    const replacement = condition.replacement;
+    const type = condition.type || 'contains';
+    
+    switch (type) {
+        case 'contains':
+            return name.replace(pattern, replacement);
+        case 'startswith':
+            return name.startsWith(pattern) ? name.replace(pattern, replacement) : name;
+        case 'endswith':
+            return name.endsWith(pattern) ? name.replace(pattern, replacement) : name;
+        case 'equals':
+            return replacement;
+        case 'regex':
+            try {
+                const regex = new RegExp(pattern);
+                return name.replace(regex, replacement);
+            } catch (e) {
+                console.error('Invalid regex pattern:', pattern);
+                return name;
+            }
+        case 'extract_job_number':
+            // Extract 5-digit job number and use in replacement
+            const jobMatch = name.match(/\d{5}/);
+            if (jobMatch) {
+                return replacement.replace('$1', jobMatch[0]);
+            }
+            return name;
+        case 'extract_customer':
+            // Extract customer name and use in replacement
+            const customerMatch = name.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)/);
+            if (customerMatch) {
+                return replacement.replace('$1', customerMatch[1]);
+            }
+            return name;
+        case 'extract_date':
+            // Extract date and use in replacement
+            const dateMatch = name.match(/(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2})/);
+            if (dateMatch) {
+                return replacement.replace('$1', dateMatch[1]);
+            }
+            return name;
+        case 'intuitive':
+            // Apply intuitive pattern replacement
+            return applyIntuitiveReplacement(name, pattern, replacement);
+        case 'not_contains':
+        case 'not_startswith':
+        case 'not_endswith':
+        case 'not_equals':
+            return replacement; // For "not" conditions, just use the replacement
+        default:
+            return name.replace(pattern, replacement);
+    }
+}
+
+// Convert intuitive patterns to regex
+function convertIntuitivePattern(pattern) {
+    let regexPattern = pattern;
+    
+    // Convert intuitive syntax to regex
+    regexPattern = regexPattern.replace(/\{d(\d+)\}/g, '(\\d{$1})'); // {d5} -> (\d{5})
+    regexPattern = regexPattern.replace(/\{customer\}/g, '([A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*)'); // {customer} -> customer name pattern
+    regexPattern = regexPattern.replace(/\{date\}/g, '(\\d{1,2}[/\\-]\\d{1,2}[/\\-]\\d{2,4}|\\d{4}[/\\-]\\d{1,2}[/\\-]\\d{1,2})'); // {date} -> date pattern
+    regexPattern = regexPattern.replace(/\{word\}/g, '(\\w+)'); // {word} -> any word
+    regexPattern = regexPattern.replace(/\{text\}/g, '(.+)'); // {text} -> any text
+    
+    return new RegExp(regexPattern);
+}
+
+// Apply intuitive pattern replacement
+function applyIntuitiveReplacement(name, pattern, replacement) {
+    let regexPattern = pattern;
+    const captures = [];
+    
+    // Convert pattern and collect capture groups
+    regexPattern = regexPattern.replace(/\{d(\d+)\}/g, (match, digits) => {
+        captures.push({ type: 'digits', count: parseInt(digits) });
+        return '(\\d{' + digits + '})';
+    });
+    
+    regexPattern = regexPattern.replace(/\{customer\}/g, () => {
+        captures.push({ type: 'customer' });
+        return '([A-Z][a-z]+(?:\\s+[A-Z][a-z]+)*)';
+    });
+    
+    regexPattern = regexPattern.replace(/\{date\}/g, () => {
+        captures.push({ type: 'date' });
+        return '(\\d{1,2}[/\\-]\\d{1,2}[/\\-]\\d{2,4}|\\d{4}[/\\-]\\d{1,2}[/\\-]\\d{1,2})';
+    });
+    
+    regexPattern = regexPattern.replace(/\{word\}/g, () => {
+        captures.push({ type: 'word' });
+        return '(\\w+)';
+    });
+    
+    regexPattern = regexPattern.replace(/\{text\}/g, () => {
+        captures.push({ type: 'text' });
+        return '(.+)';
+    });
+    
+    try {
+        const regex = new RegExp(regexPattern);
+        const match = name.match(regex);
+        
+        if (match) {
+            let result = replacement;
+            
+            // Replace {5}, {customer}, etc. with actual values
+            for (let i = 0; i < captures.length; i++) {
+                const capture = captures[i];
+                const value = match[i + 1]; // match[0] is full match
+                
+                if (capture.type === 'digits') {
+                    result = result.replace(new RegExp('\\{' + capture.count + '\\}', 'g'), value);
+                } else {
+                    result = result.replace(new RegExp('\\{' + capture.type + '\\}', 'g'), value);
+                }
+            }
+            
+            return result;
+        }
+    } catch (e) {
+        console.error('Invalid intuitive pattern:', pattern);
+    }
+    
+    return name;
+}
+
+// Apply conditions to all structures
+async function applyConditionsToAllStructures() {
+    try {
+        const response = await fetch('/job-structure/api/apply-conditions-to-all', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            // Reload structures to show updated data
+            await loadStructures();
+            showNotification(data.message, 'success');
+        } else {
+            showNotification('Failed to apply conditions: ' + data.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error applying conditions:', error);
+        showNotification('Failed to apply conditions', 'error');
+    }
+}
+
+// Undo all conditions (reset aliases to original names)
+async function undoAllConditions() {
+    try {
+        const response = await fetch('/job-structure/api/undo-conditions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+        
+        const data = await response.json();
+        if (data.success) {
+            // Reload structures to show updated data
+            await loadStructures();
+            showNotification(data.message, 'success');
+        } else {
+            showNotification('Failed to undo conditions: ' + data.error, 'error');
+        }
+    } catch (error) {
+        console.error('Error undoing conditions:', error);
+        showNotification('Failed to undo conditions', 'error');
+    }
+}
 
 function selectFolder() {
     document.getElementById('folder-picker').click();
@@ -350,7 +934,15 @@ function buildTreeData(flatStructure) {
     flatStructure.forEach((item, index) => {
         const node = {
             id: `item-${index}`,
-            text: item.name,
+            text: `<div class="flex items-center gap-2 w-full">
+                <span class="flex-1">${item.alias || item.name}</span>
+                <input type="text" 
+                       class="input input-xs w-32" 
+                       placeholder="Variable name" 
+                       value="${item.alias || ''}" 
+                       onchange="updateAlias(${index}, this.value)"
+                       data-item-index="${index}">
+            </div>`,
             type: item.type,
             data: {
                 originalIndex: index,

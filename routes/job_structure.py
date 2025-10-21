@@ -3,6 +3,10 @@ import os
 import json
 import re
 from datetime import datetime
+from database import (
+    save_naming_condition, get_naming_conditions, update_naming_condition, 
+    delete_naming_condition, apply_naming_conditions_to_structure
+)
 
 def generateSmartAlias(filename):
     """Generate a smart alias for a filename by removing common patterns"""
@@ -175,3 +179,144 @@ def scan_directory_structure(root_path):
     
     scan_directory(root_path)
     return structure
+
+# Naming Conditions API Endpoints
+@job_structure_bp.route('/api/naming-conditions', methods=['GET'])
+def get_naming_conditions_api():
+    """Get all naming conditions"""
+    try:
+        conditions = get_naming_conditions()
+        return jsonify({'success': True, 'conditions': conditions})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@job_structure_bp.route('/api/naming-conditions', methods=['POST'])
+def create_naming_condition():
+    """Create a new naming condition"""
+    try:
+        data = request.get_json()
+        condition_id = save_naming_condition(
+            condition_type=data['type'],
+            pattern=data['pattern'],
+            replacement=data['replacement'],
+            chains=data.get('chains', []),
+            enabled=data.get('enabled', True)
+        )
+        
+        if condition_id:
+            return jsonify({'success': True, 'id': condition_id})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to save condition'}), 500
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@job_structure_bp.route('/api/naming-conditions/<int:condition_id>', methods=['PUT'])
+def update_naming_condition_api(condition_id):
+    """Update a naming condition"""
+    try:
+        data = request.get_json()
+        success = update_naming_condition(
+            condition_id=condition_id,
+            condition_type=data.get('type'),
+            pattern=data.get('pattern'),
+            replacement=data.get('replacement'),
+            chains=data.get('chains'),
+            enabled=data.get('enabled')
+        )
+        
+        if success:
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to update condition'}), 500
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@job_structure_bp.route('/api/naming-conditions/<int:condition_id>', methods=['DELETE'])
+def delete_naming_condition_api(condition_id):
+    """Delete a naming condition"""
+    try:
+        success = delete_naming_condition(condition_id)
+        if success:
+            return jsonify({'success': True})
+        else:
+            return jsonify({'success': False, 'error': 'Failed to delete condition'}), 500
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@job_structure_bp.route('/api/apply-conditions-to-all', methods=['POST'])
+def apply_conditions_to_all():
+    """Apply naming conditions to all structures"""
+    try:
+        # Get all conditions
+        conditions = get_naming_conditions()
+        
+        # Get all structures
+        conn = get_db_connection()
+        structures = conn.execute(
+            'SELECT id, structure_data FROM job_structure_settings'
+        ).fetchall()
+        conn.close()
+        
+        updated_count = 0
+        for structure in structures:
+            structure_data = json.loads(structure['structure_data'])
+            
+            # Apply conditions to structure
+            updated_structure = apply_naming_conditions_to_structure(structure_data, conditions)
+            
+            # Save updated structure back to database
+            conn = get_db_connection()
+            conn.execute(
+                'UPDATE job_structure_settings SET structure_data = ?, updated_at = ? WHERE id = ?',
+                (json.dumps(updated_structure), datetime.now(), structure['id'])
+            )
+            conn.commit()
+            conn.close()
+            
+            updated_count += 1
+        
+        return jsonify({
+            'success': True, 
+            'message': f'Applied conditions to {updated_count} structures',
+            'updated_count': updated_count
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@job_structure_bp.route('/api/undo-conditions', methods=['POST'])
+def undo_conditions():
+    """Undo naming conditions by resetting aliases to original names"""
+    try:
+        # Get all structures
+        conn = get_db_connection()
+        structures = conn.execute(
+            'SELECT id, structure_data FROM job_structure_settings'
+        ).fetchall()
+        conn.close()
+        
+        updated_count = 0
+        for structure in structures:
+            structure_data = json.loads(structure['structure_data'])
+            
+            # Reset aliases to original names
+            for item in structure_data:
+                item['alias'] = item['name']
+            
+            # Save updated structure back to database
+            conn = get_db_connection()
+            conn.execute(
+                'UPDATE job_structure_settings SET structure_data = ?, updated_at = ? WHERE id = ?',
+                (json.dumps(structure_data), datetime.now(), structure['id'])
+            )
+            conn.commit()
+            conn.close()
+            
+            updated_count += 1
+        
+        return jsonify({
+            'success': True, 
+            'message': f'Reset aliases for {updated_count} structures',
+            'updated_count': updated_count
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
