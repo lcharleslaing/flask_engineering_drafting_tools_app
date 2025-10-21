@@ -1,0 +1,666 @@
+{% extends "base.html" %}
+
+{% block title %}Jobs Structure Settings - Engineering/Drafting Tools{% endblock %}
+
+{% block extra_head %}
+<style>
+.jstree-container {
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background: white;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.jstree-default .jstree-node {
+    margin: 0;
+    line-height: 1;
+}
+
+.jstree-default .jstree-anchor {
+    padding: 2px 6px;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    min-height: 24px;
+}
+
+.jstree-default .jstree-anchor:hover {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+
+.jstree-default .jstree-clicked {
+    background-color: #dbeafe !important;
+    border: 1px solid #93c5fd !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Let jsTree handle the natural order */
+.jstree-default .jstree-ocl {
+    width: 16px;
+    height: 16px;
+    margin-right: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 2px;
+    transition: background-color 0.2s ease;
+}
+
+.jstree-default .jstree-checkbox {
+    margin-right: 6px;
+    margin-left: 0;
+}
+
+
+/* Enhanced indentation and visual hierarchy */
+.jstree-default .jstree-children {
+    padding-left: 0;
+}
+
+.jstree-default .jstree-wholerow {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.jstree-default .jstree-wholerow-ul {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.jstree-default .jstree-ocl:hover {
+    background-color: #f1f5f9;
+}
+
+/* Enhanced indentation - work with jsTree's structure */
+.jstree-default .jstree-children {
+    padding-left: 24px !important;
+}
+
+/* Level-based styling with proper indentation */
+.jstree-default .jstree-node[aria-level="1"] .jstree-anchor {
+    font-weight: 600;
+    color: #1e293b;
+    background-color: #f8fafc;
+    border-left: 3px solid #3b82f6;
+}
+
+.jstree-default .jstree-node[aria-level="2"] .jstree-anchor {
+    font-weight: 500;
+    color: #334155;
+    border-left: 2px solid #64748b;
+    margin-left: 8px;
+}
+
+.jstree-default .jstree-node[aria-level="3"] .jstree-anchor {
+    color: #475569;
+    border-left: 1px solid #94a3b8;
+    margin-left: 16px;
+}
+
+.jstree-default .jstree-node[aria-level="4"] .jstree-anchor {
+    color: #64748b;
+    font-size: 0.9em;
+    margin-left: 24px;
+}
+
+.jstree-default .jstree-node[aria-level="5"] .jstree-anchor {
+    color: #64748b;
+    font-size: 0.9em;
+    margin-left: 32px;
+}
+
+/* Override jsTree's default spacing */
+.jstree-default .jstree-wholerow {
+    margin-left: 0 !important;
+}
+
+.jstree-default .jstree-anchor {
+    margin-left: 0 !important;
+    padding-left: 8px !important;
+}
+
+/* File vs Folder styling */
+.jstree-default .jstree-node[data-type="file"] .jstree-anchor {
+    font-style: italic;
+}
+
+.jstree-default .jstree-node[data-type="folder"] .jstree-anchor {
+    font-weight: 500;
+}
+
+/* Icons */
+.jstree-default .jstree-icon {
+    margin-right: 8px;
+    width: 16px;
+    height: 16px;
+}
+
+
+/* Hover effects for better UX */
+.jstree-default .jstree-node:hover .jstree-anchor {
+    transform: translateX(2px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Selected state */
+.jstree-default .jstree-selected .jstree-anchor {
+    background-color: #dbeafe !important;
+    border: 1px solid #93c5fd !important;
+    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero bg-base-200 rounded-lg mb-8">
+    <div class="hero-content text-center">
+        <div class="max-w-md">
+            <h1 class="text-4xl font-bold">Jobs Structure Settings</h1>
+            <p class="py-6">Configure folder structures and file mappings for customer jobs.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Add New Structure Section -->
+<div class="card bg-base-100 shadow-xl mb-8">
+    <div class="card-body">
+        <h2 class="card-title">Add New Customer Structure</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Customer Name</span>
+                </label>
+                <input type="text" id="customer-name" class="input input-bordered" placeholder="Auto-filled from folder path" readonly>
+                <label class="label">
+                    <span class="label-text-alt">Customer name will be extracted from the folder path</span>
+                </label>
+            </div>
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text">Folder Path</span>
+                </label>
+                <div class="flex gap-2">
+                    <input type="text" id="folder-path" class="input input-bordered flex-1" placeholder="Enter full folder path (e.g., C:\Users\YourName\Documents\CustomerFolder)" oninput="extractCustomerName()">
+                    <button class="btn btn-primary" onclick="selectFolder()">Browse</button>
+                </div>
+                <label class="label">
+                    <span class="label-text-alt">Enter the complete path to the customer folder you want to scan</span>
+                </label>
+            </div>
+        </div>
+        <div class="card-actions justify-end mt-4">
+            <button class="btn btn-primary" onclick="scanFolder()">Scan Folder Structure</button>
+        </div>
+    </div>
+</div>
+
+<!-- Existing Structures -->
+<div id="structures-container">
+    <!-- Structures will be loaded here -->
+</div>
+
+<!-- Hidden file input for folder selection -->
+<input type="file" id="folder-picker" webkitdirectory directory multiple style="display: none;" onchange="handleFolderSelection(event)">
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let currentStructures = [];
+
+// Load existing structures on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadStructures();
+});
+
+function selectFolder() {
+    document.getElementById('folder-picker').click();
+}
+
+function handleFolderSelection(event) {
+    const files = event.target.files;
+    if (files.length > 0) {
+        // Get the actual folder path from the first file
+        const firstFile = files[0];
+        const fullPath = firstFile.webkitRelativePath;
+        const folderName = fullPath.split('/')[0];
+        
+        // For now, we'll use the folder name and let the user enter the full path
+        // In a real implementation, you'd need to use a different approach for getting the full path
+        document.getElementById('folder-path').value = folderName;
+        
+        // Extract customer name from the folder name
+        extractCustomerName();
+        
+        // Show a message to enter the full path
+        showNotification('Please enter the full folder path manually in the text field', 'info');
+    }
+}
+
+function extractCustomerName() {
+    const folderPath = document.getElementById('folder-path').value.trim();
+    
+    if (folderPath) {
+        // Strip quotes and get the last part of the path (folder name)
+        let cleanPath = folderPath.replace(/^["']|["']$/g, '');
+        
+        // Split by both forward and backward slashes
+        const pathParts = cleanPath.split(/[\\\/]/);
+        
+        // Get the last non-empty part (the folder name)
+        let folderName = pathParts.filter(part => part.length > 0).pop() || '';
+        
+        // Clean up the folder name (remove common suffixes, clean up formatting)
+        folderName = folderName
+            .replace(/['"]/g, '') // Remove any remaining quotes
+            .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+            .trim()
+            .toUpperCase(); // Convert to uppercase for consistency
+        
+        document.getElementById('customer-name').value = folderName;
+    } else {
+        document.getElementById('customer-name').value = '';
+    }
+}
+
+async function scanFolder() {
+    const customerName = document.getElementById('customer-name').value.trim();
+    let folderPath = document.getElementById('folder-path').value.trim();
+    
+    // Strip quotes from the path
+    folderPath = folderPath.replace(/^["']|["']$/g, '');
+    
+    if (!customerName) {
+        showNotification('Please enter a customer name', 'error');
+        return;
+    }
+    
+    if (!folderPath) {
+        showNotification('Please enter a folder path', 'error');
+        return;
+    }
+    
+    // Basic path validation
+    if (!folderPath.includes('\\') && !folderPath.includes('/')) {
+        showNotification('Please enter a full folder path (e.g., C:\\Users\\YourName\\Documents\\CustomerFolder)', 'error');
+        return;
+    }
+    
+    // Show loading state
+    const scanButton = document.querySelector('button[onclick="scanFolder()"]');
+    const originalText = scanButton.textContent;
+    scanButton.textContent = 'Scanning...';
+    scanButton.disabled = true;
+    
+    try {
+        const response = await fetch('/job-structure/api/scan-folder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                customer_name: customerName,
+                folder_path: folderPath
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Clear form
+            document.getElementById('customer-name').value = '';
+            document.getElementById('folder-path').value = '';
+            
+            // Reload structures
+            loadStructures();
+            
+            // Show success message
+            showNotification(`Folder structure scanned successfully! Found ${result.structure.length} items.`, 'success');
+        } else {
+            showNotification('Error: ' + result.error, 'error');
+        }
+    } catch (error) {
+        showNotification('Error scanning folder: ' + error.message, 'error');
+    } finally {
+        // Reset button
+        scanButton.textContent = originalText;
+        scanButton.disabled = false;
+    }
+}
+
+async function loadStructures() {
+    try {
+        const response = await fetch('/job-structure/api/get-structures');
+        const structures = await response.json();
+        currentStructures = structures;
+        displayStructures(structures);
+    } catch (error) {
+        console.error('Error loading structures:', error);
+    }
+}
+
+
+function buildTreeData(flatStructure) {
+    const pathMap = new Map();
+    const rootNodes = [];
+    
+    // First pass: create all nodes
+    flatStructure.forEach((item, index) => {
+        const node = {
+            id: `item-${index}`,
+            text: item.name,
+            type: item.type,
+            data: {
+                originalIndex: index,
+                type: item.type,
+                included: item.included,
+                alias: item.alias || '',
+                applications: item.applications || '',
+                path: item.path
+            },
+            state: {
+                opened: !item.collapsed
+            },
+            a_attr: {
+                'data-type': item.type
+            }
+        };
+        
+        if (item.type === 'folder') {
+            node.children = [];
+        }
+        
+        // Store with both original and normalized paths
+        pathMap.set(item.path, node);
+        pathMap.set(item.path.replace(/\\/g, '/'), node);
+    });
+    
+    // Second pass: build hierarchy
+    flatStructure.forEach((item, index) => {
+        // Normalize path to use forward slashes for consistency
+        const normalizedPath = item.path.replace(/\\/g, '/');
+        const pathParts = normalizedPath.split('/');
+        const node = pathMap.get(item.path);
+        
+        if (pathParts.length === 1) {
+            // Root level
+            rootNodes.push(node);
+        } else {
+            // Child level - find parent
+            const parentPath = pathParts.slice(0, -1).join('/');
+            const parent = pathMap.get(parentPath);
+            if (parent && parent.children) {
+                parent.children.push(node);
+            } else {
+                // Debug: log missing parent
+                console.log(`Missing parent for ${item.name}:`, {
+                    itemPath: item.path,
+                    normalizedPath: normalizedPath,
+                    parentPath: parentPath,
+                    pathParts: pathParts
+                });
+            }
+        }
+    });
+    
+    // Debug: log the tree structure
+    console.log('Tree data:', rootNodes);
+    console.log('Path mapping:', pathMap);
+    
+    // Debug: check specific paths
+    flatStructure.forEach((item, index) => {
+        if (item.name === '35394' || item.name === 'Webster City, IA') {
+            console.log(`Item ${index}: ${item.name}`, {
+                path: item.path,
+                type: item.type,
+                hasChildren: pathMap.get(item.path)?.children?.length || 0
+            });
+        }
+    });
+    
+    return rootNodes;
+}
+
+function initializeTree(structureId, flatStructure) {
+    console.log('Initializing tree for structure:', structureId);
+    console.log('Flat structure:', flatStructure);
+    
+    const treeData = buildTreeData(flatStructure);
+    
+    // Destroy existing tree if it exists
+    if ($(`#tree-${structureId}`).jstree(true)) {
+        $(`#tree-${structureId}`).jstree('destroy');
+    }
+    
+    $(`#tree-${structureId}`).jstree({
+        'core': {
+            'data': treeData,
+        'themes': {
+            'name': 'default',
+            'dots': true,
+            'icons': true
+        }
+        },
+        'plugins': ['checkbox', 'wholerow', 'types'],
+        'checkbox': {
+            'keep_selected_style': false,
+            'three_state': false,
+            'cascade': 'up+down'
+        },
+        'types': {
+            'folder': {
+                'icon': 'fa fa-folder'
+            },
+            'file': {
+                'icon': false
+            }
+        }
+    }).on('ready.jstree', function() {
+        console.log('Tree ready for structure:', structureId);
+        // Set initial checkbox states
+        $(`#tree-${structureId}`).find('li').each(function() {
+            const node = $(this).jstree(true).get_node(this.id);
+            if (node && node.data) {
+                $(this).find('input[type="checkbox"]').prop('checked', node.data.included);
+            }
+        });
+    }).on('changed.jstree', function(e, data) {
+        // Handle checkbox changes
+        if (data.action === 'select_node' || data.action === 'deselect_node') {
+            const node = data.node;
+            if (node.data) {
+                updateItem(structureId, node.data.originalIndex, 'included', data.selected.includes(node.id));
+            }
+        }
+    });
+}
+
+
+function displayStructures(structures) {
+    const container = document.getElementById('structures-container');
+    
+    if (structures.length === 0) {
+        container.innerHTML = '<div class="alert alert-info"><span>No structures found. Add a new customer structure above.</span></div>';
+        return;
+    }
+    
+    container.innerHTML = structures.map(structure => `
+        <div class="card bg-base-100 shadow-xl mb-4">
+            <div class="card-body">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="card-title">${structure.customer_name}</h2>
+                    <div class="badge badge-primary">${structure.created_at}</div>
+                </div>
+                <p class="text-sm text-base-content/70 mb-4">${structure.folder_path}</p>
+                
+                <div class="flex gap-2 mb-4">
+                    <button class="btn btn-sm btn-outline" onclick="expandAllFolders(${structure.id})">Expand All</button>
+                    <button class="btn btn-sm btn-outline" onclick="collapseAllFolders(${structure.id})">Collapse All</button>
+                    <button class="btn btn-sm btn-error" onclick="clearStructure(${structure.id})">Clear Structure</button>
+                </div>
+                <div id="tree-${structure.id}" class="jstree-container" style="min-height: 200px;"></div>
+            </div>
+        </div>
+    `).join('');
+    
+    // Initialize trees after rendering
+    structures.forEach(structure => {
+        initializeTree(structure.id, structure.structure_data);
+    });
+}
+
+async function updateItem(structureId, itemIndex, field, value) {
+    try {
+        const structure = currentStructures.find(s => s.id === structureId);
+        if (structure) {
+            if (field === 'structure_data') {
+                // Update the entire structure data
+                structure.structure_data = value;
+            } else if (itemIndex < structure.structure_data.length) {
+                // Update a specific item field
+                structure.structure_data[itemIndex][field] = value;
+            }
+            
+            const response = await fetch('/job-structure/api/update-item', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    structure_id: structureId,
+                    structure_data: structure.structure_data
+                })
+            });
+            
+            if (response.ok) {
+                if (field !== 'collapsed' && field !== 'structure_data') {
+                    showNotification('Item added to the USE CONDITIONALLY list', 'success');
+                }
+            } else {
+                showNotification('Error updating item', 'error');
+            }
+        }
+    } catch (error) {
+        console.error('Error updating item:', error);
+        showNotification('Error updating item: ' + error.message, 'error');
+    }
+}
+
+function toggleItemAndChildren(structureId, itemIndex, checked) {
+    const structure = currentStructures.find(s => s.id === structureId);
+    if (!structure) return;
+    
+    const item = structure.structure_data[itemIndex];
+    const hierarchy = buildHierarchy(structure.structure_data);
+    const hierarchyItem = hierarchy.find(h => h.originalIndex === itemIndex);
+    
+    if (!hierarchyItem) return;
+    
+    // Update the item itself
+    item.included = checked;
+    
+    // If it's a folder, update all children recursively
+    if (hierarchyItem.children && hierarchyItem.children.length > 0) {
+        updateChildrenIncluded(hierarchyItem, checked, structure.structure_data);
+    }
+    
+    // Update the database
+    updateItem(structureId, itemIndex, 'included', checked);
+    
+    // Re-render the structure
+    displayStructures(currentStructures);
+}
+
+function updateChildrenIncluded(hierarchyItem, included, flatStructure) {
+    hierarchyItem.children.forEach(child => {
+        const flatItem = flatStructure[child.originalIndex];
+        if (flatItem) {
+            flatItem.included = included;
+        }
+        
+        // Recursively update children
+        if (child.children && child.children.length > 0) {
+            updateChildrenIncluded(child, included, flatStructure);
+        }
+    });
+}
+
+function toggleCollapse(structureId, itemIndex) {
+    const structure = currentStructures.find(s => s.id === structureId);
+    if (!structure) return;
+    
+    // Update the collapse state in the flat structure data
+    const flatItem = structure.structure_data[itemIndex];
+    
+    if (flatItem && flatItem.type === 'folder') {
+        flatItem.collapsed = !flatItem.collapsed;
+        
+        // Save to database
+        updateItem(structureId, itemIndex, 'collapsed', flatItem.collapsed);
+        
+        // Re-render the structure
+        displayStructures(currentStructures);
+    }
+}
+
+function expandAllFolders(structureId) {
+    $(`#tree-${structureId}`).jstree('open_all');
+}
+
+function collapseAllFolders(structureId) {
+    $(`#tree-${structureId}`).jstree('close_all');
+}
+
+async function clearStructure(structureId) {
+    if (!confirm('Are you sure you want to delete this structure? This action cannot be undone.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/job-structure/api/delete-structure/${structureId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            // Remove from current structures
+            currentStructures = currentStructures.filter(s => s.id !== structureId);
+            
+            // Re-render the display
+            displayStructures(currentStructures);
+            
+            // Show success message
+            showNotification('Structure deleted successfully', 'success');
+        } else {
+            const error = await response.json();
+            showNotification(`Error deleting structure: ${error.error}`, 'error');
+        }
+    } catch (error) {
+        console.error('Error deleting structure:', error);
+        showNotification('Error deleting structure', 'error');
+    }
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} fixed top-4 right-4 z-50 max-w-sm`;
+    notification.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="stroke-current shrink-0 w-6 h-6">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <span>${message}</span>
+        <button class="btn btn-sm btn-ghost" onclick="this.parentElement.remove()">×</button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
+}
+</script>
+{% endblock %}

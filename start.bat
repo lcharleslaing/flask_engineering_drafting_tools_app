@@ -1,0 +1,9 @@
+@echo off
+echo Starting Engineering/Drafting Tools...
+echo.
+echo Installing dependencies...
+call npm install
+echo.
+echo Starting application...
+call npm run dev
+pause

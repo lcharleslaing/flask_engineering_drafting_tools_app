@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Engineering/Drafting Tools{% endblock %}
+
+{% block content %}
+<div class="hero min-h-96 bg-base-200 rounded-lg">
+    <div class="hero-content text-center">
+        <div class="max-w-md">
+            <h1 class="text-5xl font-bold">Engineering/Drafting Tools</h1>
+            <p class="py-6">A comprehensive desktop application for engineering calculations, drafting tools, and project management.</p>
+            <button class="btn btn-primary">Get Started</button>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+    <!-- Job Documents Card -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M19,3H5C3.89,3 3,3.89 3,5V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V5C21,3.89 20.1,3 19,3M19,5V19H5V5H19Z"/>
+                </svg>
+                Job Documents
+            </h2>
+            <p>Manage projects, documents, and templates for engineering jobs and documentation.</p>
+            <div class="card-actions justify-end">
+                <a href="/job-docs" class="btn btn-primary">Open</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- D365 Integration Card -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z"/>
+                </svg>
+                D365 Integration
+            </h2>
+            <p>Connect and synchronize data with Microsoft Dynamics 365 for seamless workflow.</p>
+            <div class="card-actions justify-end">
+                <a href="/d365" class="btn btn-primary">Open</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Drafting Tools Card -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M3 3h18v2H3V3zm0 4h18v2H3V7zm0 4h18v2H3v-2zm0 4h18v2H3v-2z"/>
+                </svg>
+                Drafting Tools
+            </h2>
+            <p>CAD tools, blueprint management, and drafting utilities for your engineering projects.</p>
+            <div class="card-actions justify-end">
+                <a href="/drafting" class="btn btn-primary">Open</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Engineering Tools Card -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                Engineering Tools
+            </h2>
+            <p>Calculations, standards, and engineering analysis tools for professional use.</p>
+            <div class="card-actions justify-end">
+                <a href="/engineering" class="btn btn-primary">Open</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Utility Tools Card -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                </svg>
+                Utility Tools
+            </h2>
+            <p>Unit converters, calculators, and other utility tools for everyday engineering tasks.</p>
+            <div class="card-actions justify-end">
+                <a href="/tools" class="btn btn-primary">Open</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Jobs Structure Settings Card -->
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">
+                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,6A6,6 0 0,0 6,12A6,6 0 0,0 12,18A6,6 0 0,0 18,12A6,6 0 0,0 12,6M12,8A4,4 0 0,1 16,12A4,4 0 0,1 12,16A4,4 0 0,1 8,12A4,4 0 0,1 12,8Z"/>
+                </svg>
+                Jobs Structure Settings
+            </h2>
+            <p>Configure folder structures and file mappings for customer jobs and documentation.</p>
+            <div class="card-actions justify-end">
+                <a href="/job-structure" class="btn btn-primary">Open</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- App Status -->
+<div class="mt-12">
+    <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+            <h2 class="card-title">Application Status</h2>
+            <div class="stats stats-horizontal shadow">
+                <div class="stat">
+                    <div class="stat-title">Flask Server</div>
+                    <div class="stat-value text-success">Running</div>
+                    <div class="stat-desc">Port 5000</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-title">Electron App</div>
+                    <div class="stat-value text-success">Active</div>
+                    <div class="stat-desc">Desktop Mode</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-title">Routes</div>
+                    <div class="stat-value">4</div>
+                    <div class="stat-desc">Blueprints Loaded</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Engineering/Drafting Tools{% endblock %}</title>
+    
+    <!-- TailwindCSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- DaisyUI CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.19/dist/full.min.css" rel="stylesheet" type="text/css" />
+    
+    <!-- jsTree CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/themes/default/style.min.css" />
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-base-100">
+    <!-- Navigation -->
+    <div class="navbar bg-base-200 shadow-lg">
+        <div class="navbar-start">
+            <div class="dropdown">
+                <div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"></path>
+                    </svg>
+                </div>
+                <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                    <li><a href="/" class="{% if request.endpoint == 'main.index' %}active{% endif %}">Home</a></li>
+                    <li><a href="/job-docs" class="{% if request.endpoint.startswith('job_docs') %}active{% endif %}">Job Docs</a></li>
+                    <li><a href="/d365" class="{% if request.endpoint.startswith('d365') %}active{% endif %}">D365</a></li>
+                    <li><a href="/drafting" class="{% if request.endpoint.startswith('drafting') %}active{% endif %}">Drafting</a></li>
+                    <li><a href="/engineering" class="{% if request.endpoint.startswith('engineering') %}active{% endif %}">Engineering</a></li>
+                    <li><a href="/tools" class="{% if request.endpoint.startswith('tools') %}active{% endif %}">Tools</a></li>
+                </ul>
+            </div>
+            <a href="/" class="btn btn-ghost text-xl">
+                <svg class="w-8 h-8 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+                Engineering/Drafting Tools
+            </a>
+        </div>
+        <div class="navbar-center hidden lg:flex">
+            <ul class="menu menu-horizontal px-1">
+                <li><a href="/" class="{% if request.endpoint == 'main.index' %}active{% endif %}">Home</a></li>
+                <li><a href="/job-docs" class="{% if request.endpoint.startswith('job_docs') %}active{% endif %}">Job Docs</a></li>
+                <li><a href="/d365" class="{% if request.endpoint.startswith('d365') %}active{% endif %}">D365</a></li>
+                <li><a href="/drafting" class="{% if request.endpoint.startswith('drafting') %}active{% endif %}">Drafting</a></li>
+                <li><a href="/engineering" class="{% if request.endpoint.startswith('engineering') %}active{% endif %}">Engineering</a></li>
+                <li><a href="/tools" class="{% if request.endpoint.startswith('tools') %}active{% endif %}">Tools</a></li>
+            </ul>
+        </div>
+        <div class="navbar-end">
+            <div class="dropdown dropdown-end">
+                <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
+                    <div class="w-10 rounded-full">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                        </svg>
+                    </div>
+                </div>
+                <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
+                    <li><a>Settings</a></li>
+                    <li><a>Help</a></li>
+                    <li><a>About</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer footer-center p-4 bg-base-200 text-base-content">
+        <aside>
+            <p>© 2024 Engineering/Drafting Tools. All rights reserved.</p>
+        </aside>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.3.12/jstree.min.js"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
